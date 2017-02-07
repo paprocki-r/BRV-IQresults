@@ -1,4 +1,4 @@
-function drawBRV_FS(Q, L, session_ibi, good_ind, sessions1, sessions2, flag_lda)
+function [exponents] = drawBRV_FS(Q, L, session_ibi, good_ind, sessions1, sessions2, flag_lda)
     colors = get(gca,'colororder');
     colors = [colors; colors; colors; colors];
     close;
@@ -113,6 +113,5 @@ function drawBRV_FS(Q, L, session_ibi, good_ind, sessions1, sessions2, flag_lda)
         %%-LDA
     end
 
-    
     
 end

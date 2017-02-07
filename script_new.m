@@ -1,6 +1,10 @@
 %% set data for IQ experiment - order according to https://docs.google.com/spreadsheets/d/1-UhgPMf8TXTCcFVw9tVQPwIuIoxCZbntOK6lWKPFan4/edit?usp=sharing
+%{'AbduIQ2.TXT';'AmirIQ.TXT';'ArnoldIQ.TXT';'AsifIQ.TXT';'BinIQ.TXT';'D0000021wayneIQ.TXT';'DozieIQ.TXT';'EricIQ.TXT';'HughIQ.TXT';'IDAIQ.TXT';'JeanIQ.TXT';'JoshuaIQ.TXT';'KhalisIQ.TXT';'MelissaIQ.TXT';'Naveed2IQ.TXT';'NaveedIQ.TXT';'ReaganIQ.TXT';'SepiIQ.TXT';'SimonIQ.TXT';'SouravIQ.TXT';'UsmanIQ.TXT';'VaidasIQ.TXT';'ZaizhenIQ.TXT';'cannisIQ.TXT';'chrisIQ.TXT';'dongjunIQ.TXT';'keunhaIQ.TXT'}
+
+
 close all; clc; clear all;
-load('/media/rav/DATA/EEG-IQ/DATA/FP1.mat')
+load('/media/rav/DATA/EEG-IQ/BRV-IQresults/DATA/FP1.mat')
+
 %session_raw{session_nr}(subject_nr,:) = dataFP1(3,:);
 subjects = size(dataFP1,1);
 for i=1:subjects
@@ -47,7 +51,7 @@ end
 
 %good_ind = setdiff(1:size(session_raw_fp1{1}, 1), union(bad_ind_s1, bad_ind_s2)); 
 clear session_ibi session_beat_pos
-plot_detected_beats = 1;
+plot_detected_beats = 0;
 for k = 1:sessions
     k
     for i = 1:subjects
@@ -103,7 +107,7 @@ miss_blinks{1}{26}(1,:) = round(250.*[58.04 106.4 157.4 176 178.4 180.9 251.2 25
 miss_blinks{1}{27}(1,:) = round(250.*[2.212 5.252 21.93 30.68 32.49 44.56 46.83 57.87 62.61 66.88 67.98 70.08 80.67 85.06 87.04 89.93 95.28 98.23 104.4 107.5 111.3 112.8 116.7 128.2 131.6 133.4 135.1 145.6 145.7 147.5 149.5 150.6 152.6 156.8 158.9 166.9 168.2 171.3 176.4 183.7 185.4 187.4 195.7 197.2 199.1 202.1 212.1 236.4 239.8 242.4 244.9 246.8 256.7 263.8 275.3 293.3 296 335.6 358.8 359.5 366.9 375.9 380.3 395.2 403.4 408.8 415.3 417.3 431.4 457.3 461.3 468.1 470.3 476.3 485.7 491.5 494.1 497.4 500.3 504.8 506.7 507.6 509.2 515.2 553.2 554.4 555.1 561.5 563.2 566.2 567 579.4 582.5 589.9 597.5]);
 
 %% Merge manual detection with automatic detection
-plot_detected_beats=1;
+plot_detected_beats=0;
 for k = 1:sessions
     for i = 1:subjects
         if (i <= length(miss_blinks{k}) & ~isempty(miss_blinks{k}{i}))
@@ -182,8 +186,19 @@ Q =  [-15:3:15];
 sessions1 =  [1 1]%[1 2 3 4 5 3 3 2 2 4];
 sessions2 =  [1 1]%[2 3 4 5 2 4 5 4 5 5];
 flag_lda = 0;
-drawBRV_FS(Q, L, session_ibi, good_ind, sessions1, sessions2, flag_lda);
+exponents = drawBRV_FS(Q, L, session_ibi, good_ind, sessions1, sessions2, flag_lda);
+a_min_IQ = exponents(1:3:end,1); %a_min = q_max
+a_peak_IQ = exponents(2:3:end, 1);%a_peak = q_0
+a_max_IQ = exponents(3:3:end, 1);%a_max = q_min
 
+IQ_test_scores = [4 5 4 1 2 2 7 2 2 4 2 3 6 5 3 3 2 2 4 5 4 6 6 0 8 6 3];
+
+stem(IQ_test_scores,a_peak_IQ, 'Marker', 'o', 'color', 'r', 'markersize', 18);
+txt = mat2cell(good_ind,1,ones(1,size(good_ind,2)));
+text(IQ_test_scores,a_peak_IQ, ....
+                txt, 'color', 'b');
+            xlabel('scores');
+            ylabel('\alpha_{peak}');
 % %% test-Brownian noise
 % r{1}{1} = cumsum(rand(1,16384) - .5);
 % r{1}{1} = r{1}{1} - mean(r{1}{1});
