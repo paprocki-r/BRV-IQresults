@@ -54,10 +54,10 @@ end
 
 %good_ind = setdiff(1:size(session_raw_fp1{1}, 1), union(bad_ind_s1, bad_ind_s2)); 
 clear session_ibi session_beat_pos
-plot_detected_beats = 1;
-for k =2% 1:sessions
+plot_detected_beats = 0;
+for k =1:sessions
     k
-    for i = 18%1:subjects
+    for i = 1:subjects
         i
         [ibli, maxtab] = extract_ibli(session{k}(i,:), sampling_rate);
         if(isempty(ibli))
@@ -110,6 +110,8 @@ miss_blinks{1}{27}(1,:) = round(250.*[2.212 5.252 21.93 30.68 32.49 44.56 46.83 
 
 miss_blinks{2}{1}(1,:) = round(250.*[3.252 9.924 14.15 15.03 18.72 21.25 23.39 27.12 28.06 28.62 31.74 35.24 37.55 47.57 48.73 50.21 51.22 53.99 65.52 71 86.88 107 116.1 118.7 122.4 134 139.1 140.5 153.3 156.8 158.7 161.6 190.1 193.8 210.2 221.8 224.9 235.4 245.6 249.1 251.3 ]);
 miss_blinks{2}{2}(1,:) = round(250.*[4.304 210.1 210.8 215.6 261.4 284.3 297.4]);
+miss_blinks{2}{4}(1,:) = round(250.*[229.7 139.1 147.6 183.8 229.5 270  ]);%//TODO:temporary, do it again with fresh data
+
 miss_blinks{2}{5}(1,:) = round(250.*[6.964 283.2 287.8 ]);
 miss_blinks{2}{6}(1,:) = round(250.*[229.7  ]);
 miss_blinks{2}{7}(1,:) = round(250.*[2.532 8.464 8.924 144.9 166.9 176.6 182.8 188.2 251.4 299.2 ]);
@@ -130,7 +132,7 @@ miss_blinks{2}{24}(1,:) = round(250.*[139.5 220.5]);
 miss_blinks{2}{25}(1,:) = round(250.*[0.584 57.18 59.21 74.91 203.7 206.2 ]);
 
 %% Merge manual detection with automatic detection
-plot_detected_beats=0;
+plot_detected_beats=1;
 for k = 1:sessions
     for i = 1:subjects
         if (i <= length(miss_blinks{k}) & ~isempty(miss_blinks{k}{i}))
@@ -162,7 +164,7 @@ end
       
 % check if merging detected blinks and manually added blinks is correct
 for k=1:sessions
-    for i=1:subjects
+    for i=1:size(miss_blinks{k},2)
         if(~isempty(miss_blinks{k}{i}))
         
         detected = length(session_beat_pos{k}{i}(:,1));
@@ -175,8 +177,8 @@ for k=1:sessions
     end
 end %no message? Everything is correct:)
 %% Calcualte number of blinks for each patient during each of five stages
-save ibi.mat session_ibi good_ind;
-save workspace.mat;
+% save ibi.mat session_ibi good_ind;
+% save workspace.mat;
 for k = 1:sessions %sessions
     for i = 1:size(session_ibi{k},2);
         session_ibi_len(k,i) = length(session_ibi{k}{i});
@@ -206,19 +208,31 @@ plotBlinkRMSSDPerSubject(session_ibi_stat, good_ind, session_ibi_len);
 L = round(2.^[2:0.25:5]);
 %L = L(1:10);
 Q =  [-15:3:15];
-sessions1 =  [1 1]%[1 2 3 4 5 3 3 2 2 4];
-sessions2 =  [1 1]%[2 3 4 5 2 4 5 4 5 5];
+sessions1 =  [1 2]%[1 2 3 4 5 3 3 2 2 4];
+sessions2 =  [2 1]%[2 3 4 5 2 4 5 4 5 5];
 flag_lda = 0;
 exponents = drawBRV_FS(Q, L, session_ibi, good_ind, sessions1, sessions2, flag_lda);
 a_min_IQ = exponents(1:3:end,1); %a_min = q_max
 a_peak_IQ = exponents(2:3:end, 1);%a_peak = q_0
 a_max_IQ = exponents(3:3:end, 1);%a_max = q_min
 
+a_min_R1 = exponents(1:3:end,2); %a_min = q_max
+a_peak_R1 = exponents(2:3:end, 2);%a_peak = q_0
+a_max_R1 = exponents(3:3:end, 2);%a_max = q_min
+
+figure;
+stem(a_peak_IQ); hold on; stem(a_peak_R1)
+
+% scores calculated manually in https://docs.google.com/spreadsheets/d/1-UhgPMf8TXTCcFVw9tVQPwIuIoxCZbntOK6lWKPFan4/edit#gid=0
 IQ_test_scores = [4 5 4 1 2 2 7 2 2 4 2 3 6 5 3 3 2 2 4 5 4 6 6 0 8 6 3];
 
-stem(IQ_test_scores,a_peak_IQ, 'Marker', 'o', 'color', 'r', 'markersize', 18);
+
+
+figure;
+y = (a_peak_IQ./a_peak_R1);
+stem(IQ_test_scores,y, 'Marker', 'o', 'color', 'r', 'markersize', 18);
 txt = mat2cell(good_ind,1,ones(1,size(good_ind,2)));
-text(IQ_test_scores,a_peak_IQ, ....
+text(IQ_test_scores,y, ....
                 txt, 'color', 'b');
             xlabel('scores');
             ylabel('\alpha_{peak}');

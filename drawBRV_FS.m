@@ -5,7 +5,7 @@ function [exponents] = drawBRV_FS(Q, L, session_ibi, good_ind, sessions1, sessio
     markers = {'+','o','*','.','x'};
     exponents = zeros(length(good_ind)*3,5);
 
-    for k = 1:1
+    for k = 1:2
         for i = 1:length(good_ind)
             [alfa mfs] = estimateGFD(session_ibi{k}{good_ind(i)}', L, Q);
 %             m=1;%order of detrending funcion
@@ -46,13 +46,13 @@ function [exponents] = drawBRV_FS(Q, L, session_ibi, good_ind, sessions1, sessio
             
             a_peak(k,i) = exponents(3*i-1, k);
             
-            x1(i) = session_alfas{sessions1(k)}(i,1);
-            y1(i) = session_alfas{sessions1(k)}(i,q0);
-            z1(i) = session_alfas{sessions1(k)}(i,end); 
+            x1(k,i) = session_alfas{sessions1(k)}(i,1);
+            y1(k,i) = session_alfas{sessions1(k)}(i,q0);
+            z1(k,i) = session_alfas{sessions1(k)}(i,end); 
             
-            x2(i) = session_alfas{sessions2(k)}(i,1);
-            y2(i) = session_alfas{sessions2(k)}(i,q0);
-            z2(i) = session_alfas{sessions2(k)}(i,end); 
+            x2(k,i) = session_alfas{sessions2(k)}(i,1);
+            y2(k,i) = session_alfas{sessions2(k)}(i,q0);
+            z2(k,i) = session_alfas{sessions2(k)}(i,end); 
         end
         
         %% LDA
