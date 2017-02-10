@@ -5,7 +5,7 @@ function [exponents] = drawBRV_FS(Q, L, session_ibi, good_ind, sessions1, sessio
     markers = {'+','o','*','.','x'};
     exponents = zeros(length(good_ind)*3,5);
 
-    for k = 1:2
+    for k = 1:3
         for i = 1:length(good_ind)
             [alfa mfs] = estimateGFD(session_ibi{k}{good_ind(i)}', L, Q);
 %             m=1;%order of detrending funcion

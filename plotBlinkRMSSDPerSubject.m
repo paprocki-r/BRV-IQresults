@@ -3,8 +3,8 @@ function plotBlinkRMSSDPerSubject(session_ibi_stat, good_ind, session_ibi_len)
     colors = [colors; colors; colors; colors];
 	markers = {'+','o','*','.','x'};
     %plot blink numbers for each "good" subject for every session
-    labels = {'Resting stage 1','IQ test', 'Resting stage 2', 'Reading passage', 'Memory test'};
-    pair{1} = [1 2]; % resting stage 1 and stage 2 
+    labels = {'IQ test', 'Resting stage 1','Resting stage 2'};
+    pair{1} = [1 2 3]; % resting stage 1 and stage 2 
 %     pair{2} = [4 5]; % reading and comprehension test 
 %     pair{3} = [2 4]; % IQ and reading
 %     pair{4} = [2 5]; % IQ and memory testing 
