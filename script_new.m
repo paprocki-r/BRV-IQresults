@@ -27,10 +27,29 @@ sessions = size(session_raw,2)
 %   good_ind = good_ind(good_ind~=5) 
 %   good_ind = good_ind(good_ind~=20)
 %remove REVERSED order subjects
-good_ind = good_ind(good_ind~=6);
-good_ind = good_ind(good_ind~=9);
-good_ind = good_ind(good_ind~=14);
-good_ind = good_ind(good_ind~=23);
+% good_ind = good_ind(good_ind~=6);
+% good_ind = good_ind(good_ind~=9);
+% good_ind = good_ind(good_ind~=14);
+% good_ind = good_ind(good_ind~=23);
+
+%BR-R1 and R2 should be similar, so otherwise remove:
+%a) BR
+% good_ind = good_ind(good_ind~=1);
+% good_ind = good_ind(good_ind~=4);
+% good_ind = good_ind(good_ind~=6);
+% good_ind = good_ind(good_ind~=16);
+% %b) std
+% good_ind = good_ind(good_ind~=4);
+% good_ind = good_ind(good_ind~=11);
+% good_ind = good_ind(good_ind~=18);
+% good_ind = good_ind(good_ind~=26);
+% good_ind = good_ind(good_ind~=27);
+% %b) mean
+% good_ind = good_ind(good_ind~=4);
+% good_ind = good_ind(good_ind~=11);
+% good_ind = good_ind(good_ind~=18);
+% good_ind = good_ind(good_ind~=26);
+% good_ind = good_ind(good_ind~=27);
 
 colors = get(gca,'colororder');close;
 colors = [colors; colors; colors; colors];
@@ -191,19 +210,19 @@ for k = 1:sessions
 end
       %% 
 % check if merging detected blinks and manually added blinks is correct
-for k=1:sessions
-    for i=1:size(miss_blinks{k},2)
-        if(~isempty(miss_blinks{k}{i}))
-        
-        detected = length(session_beat_pos{k}{i}(:,1));
-        manually = length(miss_blinks{k}{i}(1,:));
-        result = length(session_beat_pos_corrected{k}{i}(:,1));
-            if detected + manually ~= result
-               disp([int2str(i),' incorrect']); 
-            end
-        end
-    end
-end %no message? Everything is correct:)
+% for k=1:sessions
+%     for i=1:size(miss_blinks{k},2)
+%         if(~isempty(miss_blinks{k}{i}))
+%         
+%         detected = length(session_beat_pos{k}{i}(:,1));
+%         manually = length(miss_blinks{k}{i}(1,:));
+%         result = length(session_beat_pos_corrected{k}{i}(:,1));
+%             if detected + manually ~= result
+%                disp([int2str(i),' incorrect']); 
+%             end
+%         end
+%     end
+% end %no message? Everything is correct:)
 %% Calcualte number of blinks for each patient during each of five stages
 % save ibi.mat session_ibi good_ind;
 % save workspace.mat;
@@ -227,11 +246,38 @@ for k = 1:sessions
         session_ibi_stat(good_ind(i),:,k) = [mean(session_ibi{k}{good_ind(i)}) std(session_ibi{k}{good_ind(i)}) std(diff(session_ibi{k}{good_ind(i)}))];
     end
 end
-plotBlinkMeanPerSubject(session_ibi_stat, good_ind, session_ibi_len);
-plotBlinkNumberPerSubject(session_ibi_len, good_ind);
-plotBlinkStdPerSubject(session_ibi_stat, good_ind, session_ibi_len);
-plotBlinkRMSSDPerSubject(session_ibi_stat, good_ind, session_ibi_len);
+figure;plotBlinkMeanPerSubject(session_ibi_stat, good_ind, session_ibi_len);grid on;
+figure;plotBlinkNumberPerSubject(session_ibi_len, good_ind);grid on;
+figure;plotBlinkStdPerSubject(session_ibi_stat, good_ind, session_ibi_len);grid on;
+figure;plotBlinkRMSSDPerSubject(session_ibi_stat, good_ind, session_ibi_len);grid on;
 
+%% since we have all characteristics of blinks (BR, mean, std_dev, etc) we can determine which subjects should be rechecked (for missed blinks) and which should be rejected
+% resting stages number of blinks is too different
+clc;
+treshold = 0.5;% 50% difference
+for i=1:subjects
+    IQ =  session_ibi_len(1,i);
+    R1 =  session_ibi_len(2,i);
+    R2 = session_ibi_len(3,i);
+
+    %ratio of number of blinks of R1 and R2 resting sessions 
+    ratio = R1/R2; 
+    if(ratio>(1+treshold) || ratio < (1-treshold)) %too big difference in BR
+        disp([num2str(i),'] ','R1/R2 ', num2str(R1), ' / ',num2str(R2),' = ', num2str(ratio)]);
+        good_ind = good_ind(good_ind~=i);
+    end
+    
+    %ratio IQ/rest should be bigger than Rest1/Rest2
+    if((IQ/R1) < (R2/R1)) 
+        disp([num2str(i),'] ', 'IQ/R1 < R1/R2 ', num2str(IQ/R1), ' > ', num2str(ratio)]);
+        good_ind = good_ind(good_ind~=i);
+
+    end
+    if((IQ/R2) < (R1/R2)) 
+        disp([num2str(i),'] ', 'IQ/R2 < R1/R2 ', num2str(IQ/R2), ' > ', num2str(ratio)]);
+        good_ind = good_ind(good_ind~=i);
+    end
+end
 %% Estimate multifractal spectrum for BRV
 L = round(2.^[2:0.25:5]);
 %L = L(1:10);
@@ -253,36 +299,43 @@ a_min_R2 = exponents(1:3:end,3); %a_min = q_max
 a_peak_R2 = exponents(2:3:end, 3);%a_peak = q_0
 a_max_R2 = exponents(3:3:end, 3);%a_max = q_min
 
-figure;
-stem(a_peak_IQ); hold on; stem(a_peak_R1)
-
 % scores calculated manually in https://docs.google.com/spreadsheets/d/1-UhgPMf8TXTCcFVw9tVQPwIuIoxCZbntOK6lWKPFan4/edit#gid=0
 IQ_test_scores = [4 5 4 1 2 2 7 2 2 4 2 3 6 5 3 3 2 2 4 5 4 6 6 0 8 6 3];
 
-
+%% figures
 
 figure;
-y = (a_peak_R1);
-x = IQ_test_scores(good_ind)
-stem(x,y, 'Marker', 'o', 'color', 'r', 'markersize', 18);
-txt = mat2cell(good_ind,1,ones(1,size(good_ind,2)));
-text(x,y, ....
-                txt, 'color', 'b');
-            xlabel('scores');
-            ylabel('\alpha_{peak}');
-            title('IQ results vs $\alfa_{peak}$ of IQ and Rest 1');
-            grid on;
+    x = (good_ind);
+    stem(good_ind, a_peak_IQ); hold on;stem(good_ind, a_peak_R1); hold on; stem(good_ind, a_peak_R2); grid on;
+    title({'$\alpha_{peak} of IQ(blue), R1(red), R2(yellow)$'},'Interpreter','latex');
+
+figure;
+    y = (a_peak_R1);
+    x = IQ_test_scores(good_ind)
+    stem(x,y, 'Marker', 'o', 'color', 'r', 'markersize', 18);
+    txt = mat2cell(good_ind,1,ones(1,size(good_ind,2)));
+    text(x,y, ....
+    txt, 'color', 'b');
+    xlabel('scores');
+    ylabel('\alpha_{peak}');
+    title({'IQ results vs $\alpha_{peak}$ Rest 1'},'Interpreter','latex');
+    grid on;
             
 figure;
-y = (a_peak_R2);
-stem(x,y, 'Marker', 'o', 'color', 'r', 'markersize', 18);
-txt = mat2cell(good_ind,1,ones(1,size(good_ind,2)));
-text(x,y, ....
-                txt, 'color', 'b');
-            xlabel('scores');
-            ylabel('\alpha_{peak}');
-            title('IQ results vs $\alfa_{peak}$ of IQ and Rest 2');
-            grid on;
+    y = (a_peak_R2);
+    x = IQ_test_scores(good_ind)
+    stem(x,y, 'Marker', 'o', 'color', 'r', 'markersize', 18);
+    txt = mat2cell(good_ind,1,ones(1,size(good_ind,2)));
+    text(x,y, ....
+    txt, 'color', 'b');
+    xlabel('scores');
+    ylabel('\alpha_{peak}');
+    title({'IQ results vs $\alpha_{peak}$ of Rest 2'},'Interpreter','latex');
+    grid on;
+            
+%% 
+
+            
 % %% test-Brownian noise
 % r{1}{1} = cumsum(rand(1,16384) - .5);
 % r{1}{1} = r{1}{1} - mean(r{1}{1});

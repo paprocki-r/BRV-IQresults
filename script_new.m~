@@ -17,6 +17,8 @@ for i=1:subjects
 end
 
 good_ind = [1:subjects];
+
+
 sessions = size(session_raw,2)
 %% we assume, resting stages are same, therefore blinks reflecting them, should have similar statistics
 
@@ -24,7 +26,11 @@ sessions = size(session_raw,2)
 % a) correctly detected
 %   good_ind = good_ind(good_ind~=5) 
 %   good_ind = good_ind(good_ind~=20)
-
+%remove REVERSED order subjects
+% good_ind = good_ind(good_ind~=6);
+% good_ind = good_ind(good_ind~=9);
+% good_ind = good_ind(good_ind~=14);
+% good_ind = good_ind(good_ind~=23);
 
 colors = get(gca,'colororder');close;
 colors = [colors; colors; colors; colors];
@@ -32,8 +38,8 @@ sampling_rate = 250;
 % k = 1;
 % for i = 1:length(good_ind)
 %     figure, 
-%     subplot(2,1,1), hist(session_raw_fp1{k}(i,:));
-%     subplot(2,1,2), plot(session_raw_fp1{k}(i,:));
+%     subplot(2,1,1), hist(session_raw_fp1{k}(good_ind(i),:));
+%     subplot(2,1,2), plot(session_raw_fp1{k}(good_ind(i),:));
 % end
 % bad_ind_s1 = [19 18 7 6 4 1];
 % bad_ind_s2 = [19 12 9 8 4];
@@ -46,10 +52,10 @@ for k = 1:sessions
 end
 
 % k = 1;
-% for i = 1:23
+% for i = 1:length(good_ind)
 %     figure, 
-%     subplot(2,1,1), hist(session{k}(i,:));
-%     subplot(2,1,2), plot(session{k}(i,:));
+%     subplot(2,1,1), hist(session{k}(good_ind(i),:));
+%     subplot(2,1,2), plot(session{k}(good_ind(i),:));
 % end
 
 %% Detect blinks and form inter-blink intervals
@@ -134,37 +140,29 @@ miss_blinks{2}{25}(1,:) = round(250.*[0.584 57.18 59.21 74.91 203.7 206.2 ]);
 miss_blinks{2}{26}(1,:) = round(250.*[128.9 211.1 214.7 233.6 241.8 288 297.3 ]);
 miss_blinks{2}{27}(1,:) = round(250.*[69.56 ]);
 
-miss_blinks{3}{1}(1,:) = round(250.*[1]);%@TODO: false, check from the beginning
 
 
-miss_blinks{3}{1}(1,:) = round(250.*[0.292 8.936 53.98 98.7 101.2 121.1 140.2 145.9 14]);%@TODO: false, check from the beginning
-
+miss_blinks{3}{1}(1,:) = round(250.*[0.292 8.936 53.98 98.7 101.2 121.1 140.2 145.9 147.9 156.7 165.1 172.8 227.8 242.6 261.2 ]);%@TODO: false, check from the beginning
 miss_blinks{3}{2}(1,:) = round(250.*[93.54 ]);
-
 miss_blinks{3}{4}(1,:) = round(250.*[35.42  ]);
-
 miss_blinks{3}{5}(1,:) = round(250.*[51.99 219.7 244.6 ]);
 miss_blinks{3}{8}(1,:) = round(250.*[5.896 183.2 291.3 ]);
 miss_blinks{3}{9}(1,:) = round(250.*[220 ]);
 miss_blinks{3}{10}(1,:) = round(250.*[20.97 23.47 35.61 112.7 115 146.1 150.6 151.9 158.9 176 178.9 201.4 217.7 271.3 272.4 ]);
 miss_blinks{3}{11}(1,:) = round(250.*[25.9 107.9  ]);
 miss_blinks{3}{14}(1,:) = round(250.*[5.352 8.724 17.19 79.06 300]);
-
 miss_blinks{3}{17}(1,:) = round(250.*[74.14 ]);
 miss_blinks{3}{18}(1,:) = round(250.*[141.2 143.5 181.5 ]);
 miss_blinks{3}{19}(1,:) = round(250.*[202.8 208.2 ]);
 miss_blinks{3}{20}(1,:) = round(250.*[12.26 75.86  ]);
-
-
 miss_blinks{3}{22}(1,:) = round(250.*[298.6 ]);%@TODO: false, check from the beginning
 miss_blinks{3}{23}(1,:) = round(250.*[68 70.68 106.6 116 126.7 139.1 226.5 ]);%@TODO: false, check from the beginning
-
 miss_blinks{3}{25}(1,:) = round(250.*[45.08 59.57 68.05 69.45 156.1 ]);%@TODO: false, check from the beginning
 
 %% Merge manual detection with automatic detection
 plot_detected_beats=1;
-for k = 3% 1:sessions
-    for i = 1:subjects
+for k = 2% 1:sessions
+    for i = 4% 1:subjects
         if (i <= length(miss_blinks{k}) & ~isempty(miss_blinks{k}{i}))
             session_beat_pos_corrected{k}{i} = sort(union(miss_blinks{k}{i}, session_beat_pos{k}{i}(:,1)));
             session_beat_pos_corrected{k}{i}(:,2) = session{k}(i,session_beat_pos_corrected{k}{i});
@@ -193,19 +191,19 @@ for k = 3% 1:sessions
 end
       %% 
 % check if merging detected blinks and manually added blinks is correct
-for k=1:sessions
-    for i=1:size(miss_blinks{k},2)
-        if(~isempty(miss_blinks{k}{i}))
-        
-        detected = length(session_beat_pos{k}{i}(:,1));
-        manually = length(miss_blinks{k}{i}(1,:));
-        result = length(session_beat_pos_corrected{k}{i}(:,1));
-            if detected + manually ~= result
-               disp([int2str(i),' incorrect']); 
-            end
-        end
-    end
-end %no message? Everything is correct:)
+% for k=1:sessions
+%     for i=1:size(miss_blinks{k},2)
+%         if(~isempty(miss_blinks{k}{i}))
+%         
+%         detected = length(session_beat_pos{k}{i}(:,1));
+%         manually = length(miss_blinks{k}{i}(1,:));
+%         result = length(session_beat_pos_corrected{k}{i}(:,1));
+%             if detected + manually ~= result
+%                disp([int2str(i),' incorrect']); 
+%             end
+%         end
+%     end
+% end %no message? Everything is correct:)
 %% Calcualte number of blinks for each patient during each of five stages
 % save ibi.mat session_ibi good_ind;
 % save workspace.mat;
@@ -217,7 +215,7 @@ end
 
 %session_ibi_len(2,:) = session_ibi_len(2,:) /1 ; %taking first 5 IQ min.
 %statistics for number of blinks
-[mean(session_ibi_len'); std(session_ibi_len')]
+[mean(session_ibi_len(:,good_ind)'); std(session_ibi_len(:,good_ind)')]
 
 % Draw BRV for every session
 drawBRVarray3(session_ibi, good_ind, session_ibi_len);
@@ -229,10 +227,10 @@ for k = 1:sessions
         session_ibi_stat(good_ind(i),:,k) = [mean(session_ibi{k}{good_ind(i)}) std(session_ibi{k}{good_ind(i)}) std(diff(session_ibi{k}{good_ind(i)}))];
     end
 end
-plotBlinkMeanPerSubject(session_ibi_stat, good_ind, session_ibi_len);
-plotBlinkNumberPerSubject(session_ibi_len, good_ind);
-plotBlinkStdPerSubject(session_ibi_stat, good_ind, session_ibi_len);
-plotBlinkRMSSDPerSubject(session_ibi_stat, good_ind, session_ibi_len);
+figure;plotBlinkMeanPerSubject(session_ibi_stat, good_ind, session_ibi_len);
+figure;plotBlinkNumberPerSubject(session_ibi_len, good_ind);
+figure;plotBlinkStdPerSubject(session_ibi_stat, good_ind, session_ibi_len);
+figure;plotBlinkRMSSDPerSubject(session_ibi_stat, good_ind, session_ibi_len);
 
 %% Estimate multifractal spectrum for BRV
 L = round(2.^[2:0.25:5]);
@@ -265,24 +263,26 @@ IQ_test_scores = [4 5 4 1 2 2 7 2 2 4 2 3 6 5 3 3 2 2 4 5 4 6 6 0 8 6 3];
 
 figure;
 y = (a_peak_R1);
-stem(IQ_test_scores,y, 'Marker', 'o', 'color', 'r', 'markersize', 18);
+x = IQ_test_scores(good_ind)
+stem(x,y, 'Marker', 'o', 'color', 'r', 'markersize', 18);
 txt = mat2cell(good_ind,1,ones(1,size(good_ind,2)));
-text(IQ_test_scores,y, ....
+text(x,y, ....
                 txt, 'color', 'b');
             xlabel('scores');
             ylabel('\alpha_{peak}');
             title('IQ results vs $\alfa_{peak}$ of IQ and Rest 1');
-            
+            grid on;
             
 figure;
 y = (a_peak_R2);
-stem(IQ_test_scores,y, 'Marker', 'o', 'color', 'r', 'markersize', 18);
+stem(x,y, 'Marker', 'o', 'color', 'r', 'markersize', 18);
 txt = mat2cell(good_ind,1,ones(1,size(good_ind,2)));
-text(IQ_test_scores,y, ....
+text(x,y, ....
                 txt, 'color', 'b');
             xlabel('scores');
             ylabel('\alpha_{peak}');
             title('IQ results vs $\alfa_{peak}$ of IQ and Rest 2');
+            grid on;
 % %% test-Brownian noise
 % r{1}{1} = cumsum(rand(1,16384) - .5);
 % r{1}{1} = r{1}{1} - mean(r{1}{1});

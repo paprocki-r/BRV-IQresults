@@ -9,7 +9,8 @@ function [exponents] = drawBRV_FS(Q, L, session_ibi, good_ind, sessions1, sessio
         for i = 1:length(good_ind)
             [alfa mfs] = estimateGFD(session_ibi{k}{good_ind(i)}', L, Q);
 %             m=1;%order of detrending funcion
-%             [Hq,tq,hq,Dq,Fq] = MFDFA1(session_ibi{k}{good_ind(i)}', L, Q,m,0);
+%             [Hq,tq,hq,Dq,Fq] = MFDFA1(session_ibi{k}{good_ind(i)}', L,
+%             Q,m,0); %script not written by us
 %              session_alfas{k}(i,:) = Hq;   
 
             session_alfas{k}(i,:) = alfa;   
