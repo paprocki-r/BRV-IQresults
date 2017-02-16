@@ -237,7 +237,7 @@ end
 [mean(session_ibi_len(:,good_ind)'); std(session_ibi_len(:,good_ind)')]
 
 % Draw BRV for every session
-drawBRVarray3(session_ibi, good_ind, session_ibi_len);
+drawBRVarray(session_ibi, good_ind, session_ibi_len);
 
 %% Calcualte mean and standard deviation for BRV
 clear session_ibi_stat
@@ -254,36 +254,54 @@ figure;plotBlinkRMSSDPerSubject(session_ibi_stat, good_ind, session_ibi_len);gri
 %% since we have all characteristics of blinks (BR, mean, std_dev, etc) we can determine which subjects should be rechecked (for missed blinks) and which should be rejected
 % resting stages number of blinks is too different
 clc;
+
+good_ind = good_ind(good_ind~=6);
+good_ind = good_ind(good_ind~=9);
+good_ind = good_ind(good_ind~=14);
+good_ind = good_ind(good_ind~=23);
+
 treshold = 0.5;% 50% difference
 for i=1:subjects
     IQ =  session_ibi_len(1,i);
     R1 =  session_ibi_len(2,i);
     R2 = session_ibi_len(3,i);
 
-    %ratio of number of blinks of R1 and R2 resting sessions 
-    ratio = R1/R2; 
-    if(ratio>(1+treshold) || ratio < (1-treshold)) %too big difference in BR
-        disp([num2str(i),'] ','R1/R2 ', num2str(R1), ' / ',num2str(R2),' = ', num2str(ratio)]);
-        good_ind = good_ind(good_ind~=i);
-    end
-    
-    %ratio IQ/rest should be bigger than Rest1/Rest2
-    if((IQ/R1) < (R2/R1)) 
-        disp([num2str(i),'] ', 'IQ/R1 < R1/R2 ', num2str(IQ/R1), ' > ', num2str(ratio)]);
-        good_ind = good_ind(good_ind~=i);
+     %min(R1,R2) should be bigger than abs(R1-R2)
+        if(min(R1, R2) < abs(R1-R2)) %too big difference in BR
+            disp([num2str(i),']', num2str(R1),'-', num2str(R2), '=',num2str(R1-R2)]);
+            good_ind = good_ind(good_ind~=i);
+        end
+        
+     %IQ should be bigger than abs(R1-R2)
+        if(IQ < abs(R1-R2)) %too big difference in BR
+            disp([num2str(i),']', num2str(R1),'-', num2str(R2), '=',num2str(R1-R2)]);
+            good_ind = good_ind(good_ind~=i);
+        end
+        
 
-    end
-    if((IQ/R2) < (R1/R2)) 
-        disp([num2str(i),'] ', 'IQ/R2 < R1/R2 ', num2str(IQ/R2), ' > ', num2str(ratio)]);
-        good_ind = good_ind(good_ind~=i);
-    end
+%     %ratio of number of blinks of R1 and R2 resting sessions 
+%         ratio = R1/R2; 
+%         if(ratio>(1+treshold) || ratio < (1-treshold)) %too big difference in BR
+%             disp([num2str(i),'] ','R1/R2 ', num2str(R1), ' / ',num2str(R2),' = ', num2str(ratio)]);
+%             good_ind = good_ind(good_ind~=i);
+%         end
+%     
+%     %ratio IQ/rest should be bigger than Rest1/Rest2
+%         if((IQ/R1) < (R2/R1)) 
+%             disp([num2str(i),'] ', 'IQ/R1 < R1/R2 ', num2str(IQ/R1), ' > ', num2str(ratio)]);
+%             good_ind = good_ind(good_ind~=i);
+%         end
+%         if((IQ/R2) < (R1/R2)) 
+%             disp([num2str(i),'] ', 'IQ/R2 < R1/R2 ', num2str(IQ/R2), ' > ', num2str(ratio)]);
+%             good_ind = good_ind(good_ind~=i);
+%         end
 end
 %% Estimate multifractal spectrum for BRV
 L = round(2.^[2:0.25:5]);
 %L = L(1:10);
 Q =  [-15:3:15];
-sessions1 =  [1 2 3]%[1 2 3 4 5 3 3 2 2 4];
-sessions2 =  [2 3 1]%[2 3 4 5 2 4 5 4 5 5];
+sessions1 =  [1 2 3];%[1 2 3 4 5 3 3 2 2 4];
+sessions2 =  [2 3 1];%[2 3 4 5 2 4 5 4 5 5];
 flag_lda = 0;
 exponents = drawBRV_FS(Q, L, session_ibi, good_ind, sessions1, sessions2, flag_lda);
 a_min_IQ = exponents(1:3:end,1); %a_min = q_max
@@ -300,40 +318,82 @@ a_peak_R2 = exponents(2:3:end, 3);%a_peak = q_0
 a_max_R2 = exponents(3:3:end, 3);%a_max = q_min
 
 % scores calculated manually in https://docs.google.com/spreadsheets/d/1-UhgPMf8TXTCcFVw9tVQPwIuIoxCZbntOK6lWKPFan4/edit#gid=0
-IQ_test_scores = [4 5 4 1 2 2 7 2 2 4 2 3 6 5 3 3 2 2 4 5 4 6 6 0 8 6 3];
-
+% order according to subject ids [1:27]
+IQ_test_scores = [4 5 4 1 2 2 7 2 2 4 2 3 6 5 3 3 2 2 4 5 4 6 6 0 8 6 3]; %score: 1-correct, 0-incorrect, 0-no answer
+%IQ_test_scores = [-5 -3 -5 -11 -9 -9 1 -9 -9 -5 -9 -7 -1 -3 -7 -7 -9 -9 -5 -3 -5 -1 -1 -13 3 -1 -7]; %score: 1-correct, -1-incorrect, 0-no answer
 %% figures
 
-figure;
-    x = (good_ind);
-    stem(good_ind, a_peak_IQ); hold on;stem(good_ind, a_peak_R1); hold on; stem(good_ind, a_peak_R2); grid on;
+h(1) = figure;
+    stem(good_ind, a_peak_IQ); hold on;stem(good_ind, a_peak_R1); hold on; stem(good_ind, a_peak_R2); 
     title({'$\alpha_{peak} of IQ(blue), R1(red), R2(yellow)$'},'Interpreter','latex');
+    grid on;
 
-figure;
+h(2) = figure;
     y = (a_peak_R1);
-    x = IQ_test_scores(good_ind)
+    x = IQ_test_scores(good_ind);
+[r,p]=corrcoef(x,y);
+% r(1,2) %correlation coefficient r
+% p(1,2) %significance level - as small the better
+
     stem(x,y, 'Marker', 'o', 'color', 'r', 'markersize', 18);
     txt = mat2cell(good_ind,1,ones(1,size(good_ind,2)));
     text(x,y, ....
     txt, 'color', 'b');
     xlabel('scores');
     ylabel('\alpha_{peak}');
-    title({'IQ results vs $\alpha_{peak}$ Rest 1'},'Interpreter','latex');
+    title({'IQ results vs $\alpha_{peak}$ Rest 1. R=',r(1,2),' with p=',p(1,2)},'Interpreter','latex');
     grid on;
             
-figure;
+h(3) = figure;
     y = (a_peak_R2);
-    x = IQ_test_scores(good_ind)
+    x = IQ_test_scores(good_ind);
+[r,p]=corrcoef(x,y);
+
     stem(x,y, 'Marker', 'o', 'color', 'r', 'markersize', 18);
     txt = mat2cell(good_ind,1,ones(1,size(good_ind,2)));
     text(x,y, ....
     txt, 'color', 'b');
     xlabel('scores');
     ylabel('\alpha_{peak}');
-    title({'IQ results vs $\alpha_{peak}$ of Rest 2'},'Interpreter','latex');
+    title({'IQ results vs $\alpha_{peak}$ of Rest 2. R=',r(1,2),' with p=',p(1,2)},'Interpreter','latex');
     grid on;
             
-%% 
+h(4) = figure;
+    y = abs(a_peak_IQ);
+    x = IQ_test_scores(good_ind);
+[r,p]=corrcoef(x,y);
+ 
+    stem(x,y, 'Marker', 'o', 'color', 'r', 'markersize', 18);
+    txt = mat2cell(good_ind,1,ones(1,size(good_ind,2)));
+    text(x,y, ....
+    txt, 'color', 'b');
+    xlabel('scores');
+    ylabel('\alpha_{peak}');
+    title({'IQ results vs $\alpha_{peak}$ of IQ. R=',r(1,2),' with p=',p(1,2)},'Interpreter','latex');
+    grid on;
+    
+h(5) = figure;
+    y = abs(a_peak_IQ-(a_peak_R1));
+    x = IQ_test_scores(good_ind);
+[r,p]=corrcoef(x,y);
+  
+    stem(x,y, 'Marker', 'o', 'color', 'r', 'markersize', 18);
+    txt = mat2cell(good_ind,1,ones(1,size(good_ind,2)));
+    text(x,y, ....
+    txt, 'color', 'b');
+    xlabel('scores');
+    ylabel('\alpha_{peak}');
+    title({'IQ results vs $\alpha_{peak}$IQ - $\alpha_{peak}$R1. R=',r(1,2),' with p=',p(1,2)},'Interpreter','latex');
+    grid on;
+    
+
+%% save figures
+for i=1:length(h)
+    t = ['c',int2str(i),'.fig']
+    savefig(h(i),t);
+end
+
+%%
 
             
 % %% test-Brownian noise
