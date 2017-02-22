@@ -253,7 +253,7 @@ figure;plotBlinkRMSSDPerSubject(session_ibi_stat, good_ind, session_ibi_len);gri
 
 %% since we have all characteristics of blinks (BR, mean, std_dev, etc) we can determine which subjects should be rechecked (for missed blinks) and which should be rejected
 % resting stages number of blinks is too different
-clc;
+clc; close all;
 
 good_ind = good_ind(good_ind~=6);
 good_ind = good_ind(good_ind~=9);
@@ -266,13 +266,13 @@ for i=1:subjects
     R1 =  session_ibi_len(2,i);
     R2 = session_ibi_len(3,i);
 
-     %min(R1,R2) should be bigger than abs(R1-R2)
+     %1. min(R1,R2) should be bigger than abs(R1-R2)
         if(min(R1, R2) < abs(R1-R2)) %too big difference in BR
             disp([num2str(i),']', num2str(R1),'-', num2str(R2), '=',num2str(R1-R2)]);
             good_ind = good_ind(good_ind~=i);
         end
         
-     %IQ should be bigger than abs(R1-R2)
+     %2. IQ should be bigger than abs(R1-R2)
         if(IQ < abs(R1-R2)) %too big difference in BR
             disp([num2str(i),']', num2str(R1),'-', num2str(R2), '=',num2str(R1-R2)]);
             good_ind = good_ind(good_ind~=i);
@@ -374,6 +374,8 @@ h(4) = figure;
     
 h(5) = figure;
     y = abs(a_peak_IQ-(a_peak_R1));
+
+
     x = IQ_test_scores(good_ind);
 [r,p]=corrcoef(x,y);
   
@@ -393,9 +395,25 @@ for i=1:length(h)
     savefig(h(i),t);
 end
 
-%%
+%% ANOVA
+%general test
+data = [a_peak_IQ a_peak_R1];
+ [P,ANOVATAB,STATS] = anova1(data)
 
-            
+ %2 groups comparison - above and below median score
+test = [good_ind; IQ_test_scores]'
+g1 = test(test(:,2)>3,:);
+g2 = test(test(:,2)<=3,:);
+g1_a_peak_R1 = a_peak_R1(g1(:,1));
+g2_a_peak_R1 = a_peak_R1(g2(:,1));
+data = [g1_a_peak_R1(2:end) g2_a_peak_R1]; %we have to drop 1 subjects-vectors have to be equal!
+[P,ANOVATAB,STATS] = anova1(data)
+
+g1_a_peak_IQ = a_peak_IQ(g1(:,1));
+g2_a_peak_IQ = a_peak_IQ(g2(:,1));
+data = [g1_a_peak_IQ(2:end) g2_a_peak_IQ];
+[P,ANOVATAB,STATS] = anova1(data)
+
 % %% test-Brownian noise
 % r{1}{1} = cumsum(rand(1,16384) - .5);
 % r{1}{1} = r{1}{1} - mean(r{1}{1});
