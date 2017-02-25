@@ -179,9 +179,9 @@ miss_blinks{3}{23}(1,:) = round(250.*[68 70.68 106.6 116 126.7 139.1 226.5 ]);%@
 miss_blinks{3}{25}(1,:) = round(250.*[45.08 59.57 68.05 69.45 156.1 ]);%@TODO: false, check from the beginning
 
 %% Merge manual detection with automatic detection
-plot_detected_beats=0;
+plot_detected_beats=1;
 for k = 1:sessions
-    for i = 1:subjects
+    for i = 4%1:subjects
         if (i <= length(miss_blinks{k}) & ~isempty(miss_blinks{k}{i}))
             session_beat_pos_corrected{k}{i} = sort(union(miss_blinks{k}{i}, session_beat_pos{k}{i}(:,1)));
             session_beat_pos_corrected{k}{i}(:,2) = session{k}(i,session_beat_pos_corrected{k}{i});
@@ -237,7 +237,7 @@ end
 [mean(session_ibi_len(:,good_ind)'); std(session_ibi_len(:,good_ind)')]
 
 % Draw BRV for every session
-drawBRVarray(session_ibi, good_ind, session_ibi_len);
+% drawBRVarray(session_ibi, good_ind, session_ibi_len);
 
 %% Calcualte mean and standard deviation for BRV
 clear session_ibi_stat
@@ -254,30 +254,30 @@ figure;plotBlinkRMSSDPerSubject(session_ibi_stat, good_ind, session_ibi_len);gri
 %% since we have all characteristics of blinks (BR, mean, std_dev, etc) we can determine which subjects should be rechecked (for missed blinks) and which should be rejected
 % resting stages number of blinks is too different
 clc; close all;
-
-good_ind = good_ind(good_ind~=6);
-good_ind = good_ind(good_ind~=9);
-good_ind = good_ind(good_ind~=14);
-good_ind = good_ind(good_ind~=23);
-
-treshold = 0.5;% 50% difference
-for i=1:subjects
-    IQ =  session_ibi_len(1,i);
-    R1 =  session_ibi_len(2,i);
-    R2 = session_ibi_len(3,i);
-
-     %1. min(R1,R2) should be bigger than abs(R1-R2)
-        if(min(R1, R2) < abs(R1-R2)) %too big difference in BR
-            disp([num2str(i),']', num2str(R1),'-', num2str(R2), '=',num2str(R1-R2)]);
-            good_ind = good_ind(good_ind~=i);
-        end
-        
-     %2. IQ should be bigger than abs(R1-R2)
-        if(IQ < abs(R1-R2)) %too big difference in BR
-            disp([num2str(i),']', num2str(R1),'-', num2str(R2), '=',num2str(R1-R2)]);
-            good_ind = good_ind(good_ind~=i);
-        end
-        
+% 
+% good_ind = good_ind(good_ind~=6);
+% good_ind = good_ind(good_ind~=9);
+% good_ind = good_ind(good_ind~=14);
+% good_ind = good_ind(good_ind~=23);
+% 
+% treshold = 0.5;% 50% difference
+% for i=1:subjects
+%     IQ =  session_ibi_len(1,i);
+%     R1 =  session_ibi_len(2,i);
+%     R2 = session_ibi_len(3,i);
+% 
+%      %1. min(R1,R2) should be bigger than abs(R1-R2)
+%         if(min(R1, R2) < abs(R1-R2)) %too big difference in BR
+%             disp([num2str(i),']', num2str(R1),'-', num2str(R2), '=',num2str(R1-R2)]);
+%             good_ind = good_ind(good_ind~=i);
+%         end
+%         
+%      %2. IQ should be bigger than abs(R1-R2)
+%         if(IQ < abs(R1-R2)) %too big difference in BR
+%             disp([num2str(i),']', num2str(R1),'-', num2str(R2), '=',num2str(R1-R2)]);
+%             good_ind = good_ind(good_ind~=i);
+%         end
+%         
 
 %     %ratio of number of blinks of R1 and R2 resting sessions 
 %         ratio = R1/R2; 
@@ -295,7 +295,10 @@ for i=1:subjects
 %             disp([num2str(i),'] ', 'IQ/R2 < R1/R2 ', num2str(IQ/R2), ' > ', num2str(ratio)]);
 %             good_ind = good_ind(good_ind~=i);
 %         end
-end
+% end
+
+
+
 %% Estimate multifractal spectrum for BRV
 L = round(2.^[2:0.25:5]);
 %L = L(1:10);
@@ -321,6 +324,22 @@ a_max_R2 = exponents(3:3:end, 3);%a_max = q_min
 % order according to subject ids [1:27]
 IQ_test_scores = [4 5 4 1 2 2 7 2 2 4 2 3 6 5 3 3 2 2 4 5 4 6 6 0 8 6 3]; %score: 1-correct, 0-incorrect, 0-no answer
 %IQ_test_scores = [-5 -3 -5 -11 -9 -9 1 -9 -9 -5 -9 -7 -1 -3 -7 -7 -9 -9 -5 -3 -5 -1 -1 -13 3 -1 -7]; %score: 1-correct, -1-incorrect, 0-no answer
+
+%% a_peak norm plots
+x = [-1:0.01:3]
+normR1 = normpdf(x,mean(a_peak_R1),std(a_peak_R1));
+normR2 = normpdf(x,mean(a_peak_R2),std(a_peak_R2));
+normIQ = normpdf(x,mean(a_peak_IQ),std(a_peak_IQ));
+figure;
+plot(x,normIQ); hold on;
+plot(x,normR1); hold on;
+plot(x,normR2); hold on;
+x = zeros(1,length(a_peak_IQ));
+stem(a_peak_IQ, x,':b','MarkerSize',10,'LineWidth', 4); hold on;
+stem(a_peak_R1, x,':dr','MarkerSize',10,'LineWidth', 4); hold on;
+stem(a_peak_R2, x,':xy','MarkerSize',10,'LineWidth', 4); grid on;
+legend('IQ','Rest1','Rest2','Location','NorthEast')
+
 %% figures
 
 h(1) = figure;
@@ -394,25 +413,54 @@ for i=1:length(h)
     t = ['c',int2str(i),'.fig']
     savefig(h(i),t);
 end
+%%
+good_ind = [1:subjects];
 
-%% ANOVA
-%general test
+%they were sleeping during experiment - confirmed with video
+good_ind = good_ind(good_ind~=8);
+good_ind = good_ind(good_ind~=24);
+
+%negative alphas
+good_ind = good_ind(good_ind~=1);%negative R1!!!
+good_ind = good_ind(good_ind~=4);%negative IQ and R1
+good_ind = good_ind(good_ind~=12);%negative IQ and R1
+
+
+%% ANOVA for alpha_peak
+
+ %general test
 data = [a_peak_IQ a_peak_R1];
  [P,ANOVATAB,STATS] = anova1(data)
+ 
+ %2 R1 groups comparison - above and below median score
+test = [1:length(good_ind); IQ_test_scores(good_ind)]'
+avg_score = median(test(:,2));
+g1 = test(test(:,2)>=avg_score,:);length(g1)
+g2 = test(test(:,2)<avg_score,:);length(g2)
+g1_a_peak_R1 = a_peak_R1(good_ind(g1(:,1)));
+g2_a_peak_R1 = a_peak_R1(good_ind(g2(:,1)));
+data = [g1_a_peak_R1(1:end); g2_a_peak_R1]; %we have to drop 1 subjects-vectors have to be equal!
+ names = {'gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp2','gp2','gp2','gp2','gp2','gp2','gp2','gp2','gp2'};
+[P,ANOVATAB,STATS] = anova1(data, names')
 
- %2 groups comparison - above and below median score
-test = [good_ind; IQ_test_scores]'
-g1 = test(test(:,2)>3,:);
-g2 = test(test(:,2)<=3,:);
-g1_a_peak_R1 = a_peak_R1(g1(:,1));
-g2_a_peak_R1 = a_peak_R1(g2(:,1));
-data = [g1_a_peak_R1(2:end) g2_a_peak_R1]; %we have to drop 1 subjects-vectors have to be equal!
-[P,ANOVATAB,STATS] = anova1(data)
-
+%3. IQ groups comparison - above and below median score
 g1_a_peak_IQ = a_peak_IQ(g1(:,1));
 g2_a_peak_IQ = a_peak_IQ(g2(:,1));
-data = [g1_a_peak_IQ(2:end) g2_a_peak_IQ];
+data = [g1_a_peak_IQ(5:end) g2_a_peak_IQ];
 [P,ANOVATAB,STATS] = anova1(data)
+
+%% ANOVA FOR BR
+ %2 R1 groups comparison - above and below median score
+test = [1:length(good_ind); IQ_test_scores(good_ind)]'
+avg_score = median(test(:,2));
+g1 = test(test(:,2)>=avg_score,:);length(g1)
+g2 = test(test(:,2)<avg_score,:);length(g2)
+g1_BRV_R1 = session_ibi_len(2,g1(:,1));
+g2_BRV_R1 = session_ibi_len(2,g2(:,1));
+data = [g1_BRV_R1(1:end), g2_BRV_R1]; %we have to drop 1 subjects-vectors have to be equal!
+ names = {'gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp2','gp2','gp2','gp2','gp2','gp2','gp2','gp2','gp2'};
+[P,ANOVATAB,STATS] = anova1(data, names)
+
 
 % %% test-Brownian noise
 % r{1}{1} = cumsum(rand(1,16384) - .5);
