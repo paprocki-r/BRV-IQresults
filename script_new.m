@@ -1,11 +1,12 @@
 %% set data for IQ experiment - order according to https://docs.google.com/spreadsheets/d/1-UhgPMf8TXTCcFVw9tVQPwIuIoxCZbntOK6lWKPFan4/edit?usp=sharing
 %{'AbduIQ2.TXT';'AmirIQ.TXT';'ArnoldIQ.TXT';'AsifIQ.TXT';'BinIQ.TXT';'D0000021wayneIQ.TXT';'DozieIQ.TXT';'EricIQ.TXT';'HughIQ.TXT';'IDAIQ.TXT';'JeanIQ.TXT';'JoshuaIQ.TXT';'KhalisIQ.TXT';'MelissaIQ.TXT';'Naveed2IQ.TXT';'NaveedIQ.TXT';'ReaganIQ.TXT';'SepiIQ.TXT';'SimonIQ.TXT';'SouravIQ.TXT';'UsmanIQ.TXT';'VaidasIQ.TXT';'ZaizhenIQ.TXT';'cannisIQ.TXT';'chrisIQ.TXT';'dongjunIQ.TXT';'keunhaIQ.TXT'}
 
+addpath('./SampEn/');
 
 close all; clc; clear all;
-load('/media/rav/DATA/EEG-IQ/BRV-IQresults/DATA/FP1_IQ.mat')
-load('/media/rav/DATA/EEG-IQ/BRV-IQresults/DATA/FP1_R1.mat')
-load('/media/rav/DATA/EEG-IQ/BRV-IQresults/DATA/FP1_R2.mat')
+load('/media/rav/1A4EEED55AE1928C/research-matlabworkspace/BRV-IQresults/DATA/FP1_IQ.mat')
+load('/media/rav/1A4EEED55AE1928C/research-matlabworkspace/BRV-IQresults/DATA/FP1_R1.mat')
+load('/media/rav/1A4EEED55AE1928C/research-matlabworkspace/BRV-IQresults/DATA/FP1_R2.mat')
 
 %session_raw{session_nr}(subject_nr,:) = dataFP1(3,:);
 subjects = size(FP1_R1,1);
@@ -179,9 +180,9 @@ miss_blinks{3}{23}(1,:) = round(250.*[68 70.68 106.6 116 126.7 139.1 226.5 ]);%@
 miss_blinks{3}{25}(1,:) = round(250.*[45.08 59.57 68.05 69.45 156.1 ]);%@TODO: false, check from the beginning
 
 %% Merge manual detection with automatic detection
-plot_detected_beats=1;
+plot_detected_beats=0;
 for k = 1:sessions
-    for i = 4%1:subjects
+    for i = 1:subjects
         if (i <= length(miss_blinks{k}) & ~isempty(miss_blinks{k}{i}))
             session_beat_pos_corrected{k}{i} = sort(union(miss_blinks{k}{i}, session_beat_pos{k}{i}(:,1)));
             session_beat_pos_corrected{k}{i}(:,2) = session{k}(i,session_beat_pos_corrected{k}{i});
@@ -251,58 +252,12 @@ figure;plotBlinkNumberPerSubject(session_ibi_len, good_ind);grid on;
 figure;plotBlinkStdPerSubject(session_ibi_stat, good_ind, session_ibi_len);grid on;
 figure;plotBlinkRMSSDPerSubject(session_ibi_stat, good_ind, session_ibi_len);grid on;
 
-%% since we have all characteristics of blinks (BR, mean, std_dev, etc) we can determine which subjects should be rechecked (for missed blinks) and which should be rejected
-% resting stages number of blinks is too different
-clc; close all;
-% 
-% good_ind = good_ind(good_ind~=6);
-% good_ind = good_ind(good_ind~=9);
-% good_ind = good_ind(good_ind~=14);
-% good_ind = good_ind(good_ind~=23);
-% 
-% treshold = 0.5;% 50% difference
-% for i=1:subjects
-%     IQ =  session_ibi_len(1,i);
-%     R1 =  session_ibi_len(2,i);
-%     R2 = session_ibi_len(3,i);
-% 
-%      %1. min(R1,R2) should be bigger than abs(R1-R2)
-%         if(min(R1, R2) < abs(R1-R2)) %too big difference in BR
-%             disp([num2str(i),']', num2str(R1),'-', num2str(R2), '=',num2str(R1-R2)]);
-%             good_ind = good_ind(good_ind~=i);
-%         end
-%         
-%      %2. IQ should be bigger than abs(R1-R2)
-%         if(IQ < abs(R1-R2)) %too big difference in BR
-%             disp([num2str(i),']', num2str(R1),'-', num2str(R2), '=',num2str(R1-R2)]);
-%             good_ind = good_ind(good_ind~=i);
-%         end
-%         
-
-%     %ratio of number of blinks of R1 and R2 resting sessions 
-%         ratio = R1/R2; 
-%         if(ratio>(1+treshold) || ratio < (1-treshold)) %too big difference in BR
-%             disp([num2str(i),'] ','R1/R2 ', num2str(R1), ' / ',num2str(R2),' = ', num2str(ratio)]);
-%             good_ind = good_ind(good_ind~=i);
-%         end
-%     
-%     %ratio IQ/rest should be bigger than Rest1/Rest2
-%         if((IQ/R1) < (R2/R1)) 
-%             disp([num2str(i),'] ', 'IQ/R1 < R1/R2 ', num2str(IQ/R1), ' > ', num2str(ratio)]);
-%             good_ind = good_ind(good_ind~=i);
-%         end
-%         if((IQ/R2) < (R1/R2)) 
-%             disp([num2str(i),'] ', 'IQ/R2 < R1/R2 ', num2str(IQ/R2), ' > ', num2str(ratio)]);
-%             good_ind = good_ind(good_ind~=i);
-%         end
-% end
-
-
-
 %% Estimate multifractal spectrum for BRV
-L = round(2.^[2:0.25:5]);
+good_ind = [1:subjects];
+
+L = round(2.^[2:0.25:5])
 %L = L(1:10);
-Q =  [-15:3:15];
+Q =  [-12:3:15];
 sessions1 =  [1 2 3];%[1 2 3 4 5 3 3 2 2 4];
 sessions2 =  [2 3 1];%[2 3 4 5 2 4 5 4 5 5];
 flag_lda = 0;
@@ -325,30 +280,34 @@ a_max_R2 = exponents(3:3:end, 3);%a_max = q_min
 IQ_test_scores = [4 5 4 1 2 2 7 2 2 4 2 3 6 5 3 3 2 2 4 5 4 6 6 0 8 6 3]; %score: 1-correct, 0-incorrect, 0-no answer
 %IQ_test_scores = [-5 -3 -5 -11 -9 -9 1 -9 -9 -5 -9 -7 -1 -3 -7 -7 -9 -9 -5 -3 -5 -1 -1 -13 3 -1 -7]; %score: 1-correct, -1-incorrect, 0-no answer
 
-%% a_peak norm plots
-x = [-1:0.01:3]
-normR1 = normpdf(x,mean(a_peak_R1),std(a_peak_R1));
-normR2 = normpdf(x,mean(a_peak_R2),std(a_peak_R2));
-normIQ = normpdf(x,mean(a_peak_IQ),std(a_peak_IQ));
-figure;
-plot(x,normIQ); hold on;
-plot(x,normR1); hold on;
-plot(x,normR2); hold on;
-x = zeros(1,length(a_peak_IQ));
-stem(a_peak_IQ, x,':b','MarkerSize',10,'LineWidth', 4); hold on;
-stem(a_peak_R1, x,':dr','MarkerSize',10,'LineWidth', 4); hold on;
-stem(a_peak_R2, x,':xy','MarkerSize',10,'LineWidth', 4); grid on;
-legend('IQ','Rest1','Rest2','Location','NorthEast')
+
+%%
+good_ind = [1:subjects];
+
+%they were sleeping during experiment - confirmed with video
+good_ind = good_ind(good_ind~=8);
+good_ind = good_ind(good_ind~=24);
+
+%negative alphas
+good_ind = good_ind(good_ind~=1);%negative R1!!!
+good_ind = good_ind(good_ind~=4);%negative IQ and R1
+good_ind = good_ind(good_ind~=12);%negative IQ and R1
+good_ind = good_ind(good_ind~=15);%negative IQ and R1
+
+%test
+good_ind = good_ind(good_ind~=3);%small IQ!!!
+
+
 
 %% figures
 
 h(1) = figure;
-    stem(good_ind, a_peak_IQ); hold on;stem(good_ind, a_peak_R1); hold on; stem(good_ind, a_peak_R2); 
+    stem(good_ind, a_peak_IQ(good_ind)); hold on;stem(good_ind, a_peak_R1(good_ind)); hold on; stem(good_ind, a_peak_R2(good_ind)); 
     title({'$\alpha_{peak} of IQ(blue), R1(red), R2(yellow)$'},'Interpreter','latex');
     grid on;
 
 h(2) = figure;
-    y = (a_peak_R1);
+    y = (a_peak_R1(good_ind));
     x = IQ_test_scores(good_ind);
 [r,p]=corrcoef(x,y);
 % r(1,2) %correlation coefficient r
@@ -362,9 +321,9 @@ h(2) = figure;
     ylabel('\alpha_{peak}');
     title({'IQ results vs $\alpha_{peak}$ Rest 1. R=',r(1,2),' with p=',p(1,2)},'Interpreter','latex');
     grid on;
-            
+% @TODO: correct figures below            
 h(3) = figure;
-    y = (a_peak_R2);
+    y = (a_peak_R2(good_ind));
     x = IQ_test_scores(good_ind);
 [r,p]=corrcoef(x,y);
 
@@ -378,7 +337,7 @@ h(3) = figure;
     grid on;
             
 h(4) = figure;
-    y = abs(a_peak_IQ);
+    y = abs(a_peak_IQ(good_ind));
     x = IQ_test_scores(good_ind);
 [r,p]=corrcoef(x,y);
  
@@ -390,85 +349,191 @@ h(4) = figure;
     ylabel('\alpha_{peak}');
     title({'IQ results vs $\alpha_{peak}$ of IQ. R=',r(1,2),' with p=',p(1,2)},'Interpreter','latex');
     grid on;
-    
+    %%
 h(5) = figure;
-    y = abs(a_peak_IQ-(a_peak_R1));
+    y = (a_peak_R1(good_ind));
 
 
     x = IQ_test_scores(good_ind);
-[r,p]=corrcoef(x,y);
-  
-    stem(x,y, 'Marker', 'o', 'color', 'r', 'markersize', 18);
-    txt = mat2cell(good_ind,1,ones(1,size(good_ind,2)));
+[r,p]=corrcoef(x,y)
+plot(x,y,'.', 'Marker', '.', 'color', 'r', 'markersize', 20, 'linewidth',3);
+axis([1.5 8.5 0 inf])
+    hold on
+    a = polyfit(x,y',1); %fit polynomial using MSE (find a and b of y=ax+b)
+    yhat=a(1)*x+a(2); %regression line
+    plot(x,yhat, 'linewidth',3)
     text(x,y, ....
-    txt, 'color', 'b');
+    txt, 'color', 'b', 'fontsize',15);
     xlabel('scores');
-    ylabel('\alpha_{peak}');
-    title({'IQ results vs $\alpha_{peak}$IQ - $\alpha_{peak}$R1. R=',r(1,2),' with p=',p(1,2)},'Interpreter','latex');
+    ylabel('\alpha Rest');
+    title({'IQ results vs $\alpha $R1. R=',r(1,2),' with p=',p(1,2)},'Interpreter','latex');
     grid on;
-    
+   
 
 %% save figures
 for i=1:length(h)
     t = ['c',int2str(i),'.fig']
     savefig(h(i),t);
 end
-%%
-good_ind = [1:subjects];
-
-%they were sleeping during experiment - confirmed with video
-good_ind = good_ind(good_ind~=8);
-good_ind = good_ind(good_ind~=24);
-
-%negative alphas
-good_ind = good_ind(good_ind~=1);%negative R1!!!
-good_ind = good_ind(good_ind~=4);%negative IQ and R1
-good_ind = good_ind(good_ind~=12);%negative IQ and R1
-
 
 %% ANOVA for alpha_peak
 
  %general test
-data = [a_peak_IQ a_peak_R1];
- [P,ANOVATAB,STATS] = anova1(data)
+data = [a_peak_IQ(good_ind) a_peak_R1(good_ind)];
+ [P,ANOVATAB,STATS] = anova1(data) %it shows that IQ and R1 have different a_peak (in terms of population)
  
  %2 R1 groups comparison - above and below median score
 test = [1:length(good_ind); IQ_test_scores(good_ind)]'
 avg_score = median(test(:,2));
-g1 = test(test(:,2)>=avg_score,:);length(g1)
-g2 = test(test(:,2)<avg_score,:);length(g2)
+g1 = test(test(:,2)>avg_score,:);length(g1)
+g2 = test(test(:,2)<=avg_score,:);length(g2)
 g1_a_peak_R1 = a_peak_R1(good_ind(g1(:,1)));
 g2_a_peak_R1 = a_peak_R1(good_ind(g2(:,1)));
 data = [g1_a_peak_R1(1:end); g2_a_peak_R1]; %we have to drop 1 subjects-vectors have to be equal!
- names = {'gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp2','gp2','gp2','gp2','gp2','gp2','gp2','gp2','gp2'};
-[P,ANOVATAB,STATS] = anova1(data, names')
+ names = {'gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp2','gp2','gp2','gp2','gp2','gp2','gp2','gp2','gp2','gp2','gp2','gp2'};
+[P_ALPHA_R1,ANOVATAB,STATS] = anova1(data, names')
 
 %3. IQ groups comparison - above and below median score
-g1_a_peak_IQ = a_peak_IQ(g1(:,1));
-g2_a_peak_IQ = a_peak_IQ(g2(:,1));
-data = [g1_a_peak_IQ(5:end) g2_a_peak_IQ];
-[P,ANOVATAB,STATS] = anova1(data)
+g1_a_peak_IQ = a_peak_IQ(good_ind(g1(:,1)))';
+g2_a_peak_IQ = a_peak_IQ(good_ind(g2(:,1)))';
+data = [g1_a_peak_IQ(1:end) g2_a_peak_IQ];
+[P_ALPHA_IQ,ANOVATAB,STATS] = anova1(data, names)
+
 
 %% ANOVA FOR BR
- %2 R1 groups comparison - above and below median score
+ %R1 groups comparison - above and below median score
+g1_BRV_R1 = session_ibi_len(2,good_ind(g1(:,1)));
+g2_BRV_R1 = session_ibi_len(2,good_ind(g2(:,1)));;
+data = [g1_BRV_R1(1:end), g2_BRV_R1]; %we have to drop 1 subjects-vectors have to be equal!
+[P_BRV_R1,ANOVATAB,STATS] = anova1(data, names)
+
+%IQ groups comparison
+g1_BRV_IQ = session_ibi_len(1,good_ind(g1(:,1)));
+g2_BRV_IQ = session_ibi_len(1,good_ind(g2(:,1)));;
+data = [g1_BRV_IQ(1:end), g2_BRV_IQ]; %we have to drop 1 subjects-vectors have to be equal!
+[P_BRV_IQ,ANOVATAB,STATS] = anova1(data, names)
+
+%% ANOVA's results for table 2 in latex - NL journal
+disp(['1 & ','$',num2str(mean(g1_BRV_R1), '%.2f'),' \pm ', num2str(std(g1_BRV_R1), '%.2f'),'$ & $ ',...
+    num2str(mean(g1_a_peak_R1), '%.2f'),' \pm ', num2str(std(g1_a_peak_R1), '%.2f'),'$ & $ ',...
+    num2str(mean(g1_BRV_IQ), '%.2f'),' \pm ', num2str(std(g1_BRV_IQ), '%.2f'),'$ & $ ',...
+    num2str(mean(g1_a_peak_IQ), '%.2f'),' \pm ', num2str(std(g1_a_peak_IQ), '%.2f'),'$ \\ \hline']);
+
+disp(['2 & ','$',num2str(mean(g2_BRV_R1), '%.2f'),' \pm ', num2str(std(g2_BRV_R1), '%.2f'),'$ & $ ',...
+    num2str(mean(g2_a_peak_R1), '%.2f'),' \pm ', num2str(std(g2_a_peak_R1), '%.2f'),'$ & $ ',...
+    num2str(mean(g2_BRV_IQ), '%.2f'),' \pm ', num2str(std(g2_BRV_IQ), '%.2f'),'$ & $ ',...
+    num2str(mean(g2_a_peak_IQ), '%.2f'),' \pm ', num2str(std(g2_a_peak_IQ), '%.2f'),'$ \\ \hline']);
+
+disp(['p & ','$',num2str((P_BRV_R1), '%.3f'),'$ & $ ',...
+     num2str((P_ALPHA_R1), '%.3f'),'$ & $ ',...
+   num2str((P_BRV_IQ), '%.3f'),'$ & $ ',...
+    num2str((P_ALPHA_IQ), '%.3f'),'$ \\ \hline']);
+
+%% ANOVA for differences between alphas of IQ and rest
+data = [session_ibi_len(2,good_ind); session_ibi_len(1,good_ind)]; 
+[P_ALPHA_IQ,ANOVATAB,STATS] = anova1(data')
+%% print data for latex table 1
+table = [good_ind' session_ibi_len(2,good_ind)' a_peak_R1(good_ind) session_ibi_len(1,good_ind)' a_peak_IQ(good_ind) IQ_test_scores(good_ind)']
+%% a_peak norm plots for all subjects
+x = [-0.2:0.01:1.6]
+
+normR1 = normpdf(x,mean(a_peak_R1(good_ind)),std(a_peak_R1(good_ind)));
+normR2 = normpdf(x,mean(a_peak_R2(good_ind)),std(a_peak_R2(good_ind)));
+normIQ = normpdf(x,mean(a_peak_IQ(good_ind)),std(a_peak_IQ(good_ind)));
+figure;
+plot(x,normIQ,'LineWidth',2); hold on;
+plot(x,normR1,'LineWidth',2); hold on;
+%plot(x,normR2); hold on;
+x = zeros(1,length(a_peak_IQ(good_ind)));
+stem(a_peak_IQ(good_ind), x,':b','MarkerSize',10,'LineWidth', 2); hold on;
+stem(a_peak_R1(good_ind), x,':xr','MarkerSize',10,'LineWidth', 2); hold on;
+%stem(a_peak_R2(good_ind), x,':xy','MarkerSize',10,'LineWidth', 4); grid on;
+legend('IQ','Rest','Location','NorthEast')
+
+%% a_peak norm plots for 2 groups - smarter (1) and less smart (2)
+x = [0:0.01:1.8]
+
+ colors =[ 0    0.4470    0.7410   ;  0.8500    0.3250    0.0980];
+
+
+norm1R1 = normpdf(x,mean(g1_a_peak_R1),std(g1_a_peak_R1));
+norm2R1 = normpdf(x,mean(g2_a_peak_R1),std(g2_a_peak_R1));
+figure;
+plot(x,norm1R1,'color',colors(1,:),'LineWidth',2); hold on;
+plot(x,norm2R1,'color',colors(2,:),'LineWidth',2); hold on;
+
+%plot(x,normR2); hold on;
+norm1IQ = normpdf(x,mean(g1_a_peak_IQ),std(g1_a_peak_IQ));
+norm2IQ = normpdf(x,mean(g2_a_peak_IQ),std(g2_a_peak_IQ));
+
+plot(x,norm1IQ,':','color',colors(1,:),'LineWidth',2); hold on;
+plot(x,norm2IQ,':','color',colors(2,:),'LineWidth',2); hold on;
+legend({'$\alpha$ R for higher scores','$\alpha$ R for lower scores','$\alpha$ IQ for higher scores','$\alpha$ IQ for lower scores'},'Interpreter','latex', 'FontSize',14)
+
+%% normality test (should be in the beginning :P)
+clc
+for i=1:sessions
+    for j=1:subjects
+       [H, pValue, SWstatistic]=  swtest(session_ibi{1,i}{j});
+       if(H==0) 
+           disp(['session' num2str(i),' subject ',num2str(i)]);
+       end
+    end
+end
+%% SampEn
+close all
+
+
+good_ind = [1:subjects];
+good_ind = good_ind(good_ind~=4); %here is NAN so we have to remove it or we won't get PDF
+
 test = [1:length(good_ind); IQ_test_scores(good_ind)]'
 avg_score = median(test(:,2));
 g1 = test(test(:,2)>=avg_score,:);length(g1)
 g2 = test(test(:,2)<avg_score,:);length(g2)
-g1_BRV_R1 = session_ibi_len(2,g1(:,1));
-g2_BRV_R1 = session_ibi_len(2,g2(:,1));
-data = [g1_BRV_R1(1:end), g2_BRV_R1]; %we have to drop 1 subjects-vectors have to be equal!
- names = {'gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp2','gp2','gp2','gp2','gp2','gp2','gp2','gp2','gp2'};
-[P,ANOVATAB,STATS] = anova1(data, names)
+    
+for dim=1:20
+    for r=1:20
+       corrupted = 0;
+    % SampEn    
+        for k = 1:sessions
+            for i = 1:subjects
+                data = session_ibi{k}{i};
+                SampEntropy(i,k) = SampEn(dim,0.05*r*std(data),data)
+                if(isnan(SampEntropy(i,k)) || SampEntropy(i,k)==0) 
+                    corrupted = 1;
+                end
+            end
+        end
+
+    %ANOVA  
+        if (~corrupted)
+            g1_a_peak_R1 = SampEntropy(good_ind(g1(:,1)),2);
+            g2_a_peak_R1 = SampEntropy(good_ind(g2(:,1)),2);
+            data = [g1_a_peak_R1; g2_a_peak_R1]; %we have to drop 1 subjects-vectors have to be equal!
+             names = {'gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp1',...
+                         'gp2','gp2','gp2','gp2','gp2','gp2','gp2','gp2','gp2','gp2','gp2','gp2'}; %all but 4th
+            [P,ANOVATAB,STATS] = anova1(data, names', 'off');
+            results(dim, r) = P;
+        end
+    end
+end
+
+ [dim_R,r_R] = find(results==min(results(:)))
+disp(['Minimum ',num2str(min(results(:))),' we got for dim = ',num2str(dim_R),' and r = ',num2str(r_R*0.05), '*std(data)']);
+%% PDF for all1
+close all
+colors =[ 0    0.4470    0.7410   ;  0.8500    0.3250    0.0980; 0.8500    0.3250    0.9980];
 
 
-% %% test-Brownian noise
-% r{1}{1} = cumsum(rand(1,16384) - .5);
-% r{1}{1} = r{1}{1} - mean(r{1}{1});
-% r{2}{1} = r{1}{1};
-% r{3}{1} = r{1}{1};
-% r{4}{1} = r{1}{1};
-% r{5}{1} = r{1}{1};
-% drawBRV_FS(Q, L(1:end), r, [1], [1], [1]);
+tempSampEntropy=SampEntropy([good_ind],:);
 
+x = [-1:0.1:5]
+normR1 = normpdf(x,mean(tempSampEntropy(:,1)),std(tempSampEntropy(:,1)));
+normR2 = normpdf(x,mean(tempSampEntropy(:,2)),std(tempSampEntropy(:,2)));
+normR3 = normpdf(x,mean(tempSampEntropy(:,3)),std(tempSampEntropy(:,3)));
 
+figure;
+plot(x,normR1,'color',colors(1,:),'LineWidth',2); hold on;
+plot(x,normR2,'color',colors(2,:),'LineWidth',2); hold on;
+plot(x,normR3,'color',colors(3,:),'LineWidth',2); hold on;
