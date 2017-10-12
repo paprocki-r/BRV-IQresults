@@ -3,9 +3,9 @@
 addpath('./SampEn/');
 
 close all; clc; clear all;
-load('/media/rav/1A4EEED55AE1928C/research-matlabworkspace/BRV-IQresults/DATA/FP1_IQ.mat')
-load('/media/rav/1A4EEED55AE1928C/research-matlabworkspace/BRV-IQresults/DATA/FP1_R1.mat')
-load('/media/rav/1A4EEED55AE1928C/research-matlabworkspace/BRV-IQresults/DATA/FP1_R2.mat')
+load('/media/rav/1A4EEED55AE1928C/research/matlabworkspace/ScientificReportsBRV-IQresults/DATA/FP1_IQ.mat')
+load('/media/rav/1A4EEED55AE1928C/research/matlabworkspace/ScientificReportsBRV-IQresults/DATA/FP1_R1.mat')
+load('/media/rav/1A4EEED55AE1928C/research/matlabworkspace/ScientificReportsBRV-IQresults/DATA/FP1_R2.mat')
 
 %session_raw{session_nr}(subject_nr,:) = dataFP1(3,:);
 subjects = size(FP1_R1,1);
@@ -459,26 +459,29 @@ axis([0.3 1.4 1.6 8.6])
     text(x-0.02,y+0.3, txt, 'color', 'black', 'fontsize',10);
     ylabel('IQ scores');
     xlabel('\alpha of resting');
-   % title({'IQ results vs $\alpha $R1. R=',r(1,2),' with p=',p(1,2)},'Interpreter','latex');
+   title({'IQ results vs $\alpha $R1. R=',r(1,2),' with p=',p(1,2)},'Interpreter','latex');
     grid on;
    
 
-%% save figures
+% % save figures
 % for i=1:length(h)
-%     t = ['c',int2str(i),'.fig']
+%     t = ['c',int2str(i),'.jpeg']
 %     savefig(h(i),t);
 % end
 
 %% ANOVA for alpha_peak
 
  %general test
+ %A1
 data = [a_peak_IQ(good_ind) a_peak_R1(good_ind)];
  [P,ANOVATAB,STATS] = anova1(data) %it shows that IQ and R1 have different a_peak (in terms of population)
  
  %% ANOVA for differences between BR of IQ and rest
+ %A2
 data = [session_ibi_len(2,good_ind); (session_ibi_len(1,good_ind)/2)]; %since IQ is 2 times longer
 [P_ALPHA_IQ,ANOVATAB,STATS] = anova1(data')
 
+%A3
  %2 R1 groups comparison - above and below median score
 test = [1:length(good_ind); IQ_test_scores(good_ind)]'
 avg_score = median(test(:,2));
@@ -492,6 +495,7 @@ data = [g1_a_peak_R1; g2_a_peak_R1]; %we have to drop 1 subjects-vectors have to
           'gp2','gp2','gp2','gp2','gp2','gp2','gp2','gp2','gp2','gp2','gp2','gp2','gp2','gp2','gp2'};%without 4,8,24
 [P_ALPHA_R1,ANOVATAB,STATS] = anova1(data, names')
 
+%A4
 %3. IQ groups comparison - above and below median score
 g1_a_peak_IQ = a_peak_IQ(good_ind(g1(:,1)))';
 g2_a_peak_IQ = a_peak_IQ(good_ind(g2(:,1)))';
@@ -500,12 +504,14 @@ data = [g1_a_peak_IQ g2_a_peak_IQ];
 
 
 %% ANOVA FOR BR
+%A5
  %R1 groups comparison - above and below median score
 g1_BRV_R1 = session_ibi_len(2,good_ind(g1(:,1)));
-g2_BRV_R1 = session_ibi_len(2,good_ind(g2(:,1)));;
+g2_BRV_R1 = session_ibi_len(2,good_ind(g2(:,1)));
 data = [g1_BRV_R1(1:end), g2_BRV_R1]; %we have to drop 1 subjects-vectors have to be equal!
 [P_BRV_R1,ANOVATAB,STATS] = anova1(data, names)
 
+%A6
 %IQ groups comparison
 g1_BRV_IQ = session_ibi_len(1,good_ind(g1(:,1)));
 g2_BRV_IQ = session_ibi_len(1,good_ind(g2(:,1)));;
