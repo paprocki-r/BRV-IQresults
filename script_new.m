@@ -76,7 +76,7 @@ session_raw{2}(26,7602:7958)=0
 session_raw{2}(26,16440:16560)=0
 
 
-figure;plot(session_raw{2}(11,:))
+figure;plot(session_raw{1}(1,:))
 
 
 good_ind = [1:subjects];
@@ -144,7 +144,7 @@ end
 
 %good_ind = setdiff(1:size(session_raw_fp1{1}, 1), union(bad_ind_s1, bad_ind_s2)); 
 clear session_ibi session_beat_pos
-plot_detected_beats = 0;
+plot_detected_beats = 1;
 for k =1:sessions
     k
     for i = 1:subjects
@@ -315,7 +315,7 @@ disp(['Overall there is ',num2str(errors_inc),' subjects with incorrectly (overl
 %no message? Everything is correct:)
 %% Calcualte number of blinks for each patient during each of five stages
 % save ibi.mat session_ibi good_ind;
-% save workspace.mat;
+ save load  frontiers_workspace.mat;
 for k = 1:sessions %sessions
     for i = 1:size(session_ibi{k},2);
         session_ibi_len(k,i) = length(session_ibi{k}{i});
@@ -387,6 +387,8 @@ good_ind = good_ind(good_ind~=4);%negative IQ and R1
 %good_ind = good_ind(good_ind~=3);%small IQ!!!
 
 
+% good_ind = good_ind(good_ind~=3);%test
+% good_ind = good_ind(good_ind~=15);%test
 
 
 %% figures
@@ -425,7 +427,7 @@ h(3) = figure;
     ylabel('\alpha_{peak}');
     title({'IQ results vs $\alpha_{peak}$ of Rest 2. R=',r(1,2),' with p=',p(1,2)},'Interpreter','latex');
     grid on;
-            
+         %%       
 h(4) = figure;
     y = abs(a_peak_IQ(good_ind));
     x = IQ_test_scores(good_ind);
@@ -435,8 +437,8 @@ h(4) = figure;
     txt = mat2cell(good_ind,1,ones(1,size(good_ind,2)));
     text(x,y, ....
     txt, 'color', 'b');
-    xlabel('scores');
-    ylabel('\alpha_{peak}');
+    ylabel('IQ scores');
+    xlabel('\alpha of IQ test');
     title({'IQ results vs $\alpha_{peak}$ of IQ. R=',r(1,2),' with p=',p(1,2)},'Interpreter','latex');
     grid on;
     %%
@@ -448,7 +450,8 @@ h(5) = figure('Position', [100, 100, 600, 400])
     y = IQ_test_scores(good_ind);
      %  y=(y-mean(y))/std(y);
 
-   
+       txt = mat2cell(good_ind,1,ones(1,size(good_ind,2)));
+
 [r,p]=corrcoef(x,y)
 plot(x,y,'.', 'Marker', '.', 'color', 'r', 'markersize', 20, 'linewidth',3);
 axis([0.3 1.4 1.6 8.6])
@@ -461,7 +464,29 @@ axis([0.3 1.4 1.6 8.6])
     xlabel('\alpha of resting');
    title({'IQ results vs $\alpha $R1. R=',r(1,2),' with p=',p(1,2)},'Interpreter','latex');
     grid on;
+%% 
+h(6) = figure('Position', [100, 100, 600, 400])
+
+    x = (a_peak_IQ(good_ind));
+      %x=(x-mean(x))/std(x);
+
+    y = IQ_test_scores(good_ind);
+     %  y=(y-mean(y))/std(y);
+    txt = mat2cell(good_ind,1,ones(1,size(good_ind,2)));
+
    
+[r,p]=corrcoef(x,y)
+plot(x,y,'.', 'Marker', '.', 'color', 'r', 'markersize', 20, 'linewidth',3);
+axis([0.5 0.85 1.6 8.6])
+    hold on
+    a = polyfit(x,y',1); %fit polynomial using MSE (find a and b of y=ax+b)
+    yhat=a(1)*x+a(2); %regression line
+    plot(x,yhat, 'linewidth',3)
+    text(x-0.02,y+0.3, txt, 'color', 'black', 'fontsize',10);
+    ylabel('IQ scores');
+    xlabel('\alpha of IQ test');
+   title({'IQ results vs $\alpha $R1. R=',r(1,2),' with p=',p(1,2)},'Interpreter','latex');
+    grid on;
 
 % % save figures
 % for i=1:length(h)
@@ -470,6 +495,7 @@ axis([0.3 1.4 1.6 8.6])
 % end
 
 %% ANOVA for alpha_peak
+
 
  %general test
  %A1
@@ -577,28 +603,32 @@ disp(['$\langle n\rangle\pm\sigma$  & ','$',num2str(mean(session_ibi_len(2,good_
 % legend('IQ','Rest','Location','NorthEast')
 
 %% a_peak norm plots for 2 groups - smarter (1) and less smart (2)
-% x = [0:0.01:1.8]
-% 
-%  colors =[ 0    0.4470    0.7410   ;  0.8500    0.3250    0.0980];
-% 
-% 
-% norm1R1 = normpdf(x,mean(g1_a_peak_R1),std(g1_a_peak_R1));
-% norm2R1 = normpdf(x,mean(g2_a_peak_R1),std(g2_a_peak_R1));
-% figure('Position', [100, 100, 600, 400])
-% 
-% plot(x,norm1R1,'color',colors(1,:),'LineWidth',2); hold on;
-% plot(x,norm2R1,'color',colors(2,:),'LineWidth',2); hold on;
-% 
-% %plot(x,normR2); hold on;
-% norm1IQ = normpdf(x,mean(g1_a_peak_IQ),std(g1_a_peak_IQ));
-% norm2IQ = normpdf(x,mean(g2_a_peak_IQ),std(g2_a_peak_IQ));
-% % norm1IQ = (norm1IQ -mean(norm1IQ))/std(norm1IQ)
-% % norm2IQ = (norm2IQ -mean(norm2IQ))/std(norm2IQ)
-% plot(x,norm1IQ,':','color',colors(1,:),'LineWidth',2); hold on;
-% plot(x,norm2IQ,':','color',colors(2,:),'LineWidth',2); hold on;
-% legend({'$\alpha$ resting of $IQ^+$','$\alpha$ resting of $IQ^-$','$\alpha$ IQ test of $IQ^+$','$\alpha$ IQ test of $IQ^-$'},'Interpreter','latex', 'FontSize',14)
-% xlabel({'$\alpha$'},'Interpreter','latex')
+x = [0:0.01:1.8]
+
+ colors =[ 0    0.4470    0.7410   ;  0.8500    0.3250    0.0980];
+
+
+norm1R1 = normpdf(x,mean(g1_a_peak_R1),std(g1_a_peak_R1));
+norm2R1 = normpdf(x,mean(g2_a_peak_R1),std(g2_a_peak_R1));
+figure('Position', [100, 100, 600, 400])
+
+plot(x,norm1R1,'color',colors(1,:),'LineWidth',2); hold on;
+plot(x,norm2R1,'color',colors(2,:),'LineWidth',2); hold on;
+
+%plot(x,normR2); hold on;
+norm1IQ = normpdf(x,mean(g1_a_peak_IQ),std(g1_a_peak_IQ));
+norm2IQ = normpdf(x,mean(g2_a_peak_IQ),std(g2_a_peak_IQ));
+% norm1IQ = (norm1IQ -mean(norm1IQ))/std(norm1IQ)
+% norm2IQ = (norm2IQ -mean(norm2IQ))/std(norm2IQ)
+plot(x,norm1IQ,':','color',colors(1,:),'LineWidth',2); hold on;
+plot(x,norm2IQ,':','color',colors(2,:),'LineWidth',2); hold on;
+legend({'$\alpha$ resting of $IQ^+$','$\alpha$ resting of $IQ^-$','$\alpha$ IQ test of $IQ^+$','$\alpha$ IQ test of $IQ^-$'},'Interpreter','latex', 'FontSize',14)
+xlabel({'$\alpha$'},'Interpreter','latex')
+ylabel({'P($\alpha$)'},'Interpreter','latex')
+
+
 %% normality test (should be in the beginning :P)
+
 % clc
 % for i=1:sessions
 %     for j=1:subjects
