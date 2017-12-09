@@ -3,9 +3,9 @@
 addpath('./SampEn/');
 
 close all; clc; clear all;
-load('/media/rav/1A4EEED55AE1928C/research-matlabworkspace/BRV-IQresults/DATA/FP1_IQ.mat')
-load('/media/rav/1A4EEED55AE1928C/research-matlabworkspace/BRV-IQresults/DATA/FP1_R1.mat')
-load('/media/rav/1A4EEED55AE1928C/research-matlabworkspace/BRV-IQresults/DATA/FP1_R2.mat')
+load('/media/rav/DATA/research/matlabworkspace/ScientificResultsBRV-IQresults/DATA/FP1_IQ.mat')
+load('/media/rav/DATA/research/matlabworkspace/ScientificResultsBRV-IQresults/DATA/FP1_R1.mat')
+load('/media/rav/DATA/research/matlabworkspace/ScientificResultsBRV-IQresults/DATA/FP1_R2.mat')
 
 %session_raw{session_nr}(subject_nr,:) = dataFP1(3,:);
 subjects = size(FP1_R1,1);
@@ -491,12 +491,14 @@ data = [g1_a_peak_R1; g2_a_peak_R1]; %we have to drop 1 subjects-vectors have to
  names = {'gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp1','gp1',...
           'gp2','gp2','gp2','gp2','gp2','gp2','gp2','gp2','gp2','gp2','gp2','gp2','gp2','gp2','gp2'};%without 4,8,24
 [P_ALPHA_R1,ANOVATAB,STATS] = anova1(data, names')
+F_ALPHA_R1 = cell2mat(ANOVATAB(2,5));
 
 %3. IQ groups comparison - above and below median score
 g1_a_peak_IQ = a_peak_IQ(good_ind(g1(:,1)))';
 g2_a_peak_IQ = a_peak_IQ(good_ind(g2(:,1)))';
 data = [g1_a_peak_IQ g2_a_peak_IQ];
 [P_ALPHA_IQ,ANOVATAB,STATS] = anova1(data, names)
+F_ALPHA_IQ = cell2mat(ANOVATAB(2,5));
 
 
 %% ANOVA FOR BR
@@ -505,15 +507,17 @@ g1_BRV_R1 = session_ibi_len(2,good_ind(g1(:,1)));
 g2_BRV_R1 = session_ibi_len(2,good_ind(g2(:,1)));;
 data = [g1_BRV_R1(1:end), g2_BRV_R1]; %we have to drop 1 subjects-vectors have to be equal!
 [P_BRV_R1,ANOVATAB,STATS] = anova1(data, names)
+F_BRV_R1 = cell2mat(ANOVATAB(2,5));
 
 %IQ groups comparison
 g1_BRV_IQ = session_ibi_len(1,good_ind(g1(:,1)));
 g2_BRV_IQ = session_ibi_len(1,good_ind(g2(:,1)));;
 data = [g1_BRV_IQ(1:end), g2_BRV_IQ]; %we have to drop 1 subjects-vectors have to be equal!
 [P_BRV_IQ,ANOVATAB,STATS] = anova1(data, names)
+F_BRV_IQ = cell2mat(ANOVATAB(2,5));
 
 %% % ANOVA's results for table 2 in latex - NL journal
-clc;
+clc; close all;
 disp(['1 & ','$',num2str(mean(g1_BRV_R1/5), '%.2f'),' \pm ', num2str(std(g1_BRV_R1/5), '%.2f'),'$ & $ ',...
     num2str(mean(g1_a_peak_R1), '%.2f'),' \pm ', num2str(std(g1_a_peak_R1), '%.2f'),'$ & $ ',...
     num2str(mean(g1_BRV_IQ/5), '%.2f'),' \pm ', num2str(std(g1_BRV_IQ/5), '%.2f'),'$ & $ ',...
@@ -524,10 +528,11 @@ disp(['2 & ','$',num2str(mean(g2_BRV_R1/5), '%.2f'),' \pm ', num2str(std(g2_BRV_
     num2str(mean(g2_BRV_IQ/5), '%.2f'),' \pm ', num2str(std(g2_BRV_IQ/5), '%.2f'),'$ & $ ',...
     num2str(mean(g2_a_peak_IQ), '%.2f'),' \pm ', num2str(std(g2_a_peak_IQ), '%.2f'),'$ \\ \hline']);
 
-disp(['$p$ & ','$',num2str((P_BRV_R1), '%.3f'),'$ & $ ',...
-     num2str((P_ALPHA_R1), '%.3f'),'$ & $ ',...
-     num2str((P_BRV_IQ), '%.3f'),'$ & $ ',...
-     num2str((P_ALPHA_IQ), '%.3f'),'$ \\ \hline']);
+disp(['$p (F)$ & ','$',...
+     num2str((P_BRV_R1), '%.3f'),'(',num2str((F_BRV_R1), '%.3f'),')','$ & $ ',...
+     num2str((P_ALPHA_R1), '%.3f'),'(',num2str((F_ALPHA_R1), '%.3f'),')','$ & $ ',...
+     num2str((P_BRV_IQ), '%.3f'),'(',num2str((F_BRV_IQ), '%.3f'),')','$ & $ ',...
+     num2str((P_ALPHA_IQ), '%.3f'),'(',num2str((F_ALPHA_IQ), '%.3f'),')','$ \\ \hline']);
 
 
 %% print data for latex table 1
